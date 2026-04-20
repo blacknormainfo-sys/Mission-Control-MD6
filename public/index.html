@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MISSION CONTROL MD6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Stardos+Stencil:wght@400;700&family=Black+Ops+One&family=JetBrains+Mono:wght@400;500;700&family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-elev: #111111;
+    --bg-card: #141414;
+    --bg-card-hi: #1a1a1a;
+    --line: #2a2a2a;
+    --line-hi: #3a3a3a;
+    --text: #e8e8e8;
+    --text-dim: #888;
+    --text-faint: #555;
+    --red: #dc2020;
+    --red-bright: #ff2a2a;
+    --red-dim: #8b1313;
+    --amber: #f4a020;
+    --green: #4ade80;
+    --display: 'Black Ops One', 'Stardos Stencil', sans-serif;
+    --stencil: 'Stardos Stencil', sans-serif;
+    --body: 'Oswald', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Tactical grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(220, 32, 32, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(220, 32, 32, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.6) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .app {
+    position: relative;
+    z-index: 2;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* ============ HEADER ============ */
+  .header {
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, var(--bg-elev) 0%, var(--bg) 100%);
+    padding: 20px 28px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 32px;
+    position: relative;
+    margin-bottom: 24px;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red) 20%, var(--red) 80%, transparent);
+  }
+  .header-corner {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--red);
+  }
+  .header-corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .header-corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+  .header-corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+  .header-corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .brand-mark {
+    width: 52px;
+    height: 52px;
+    border: 2px solid var(--red);
+    display: grid;
+    place-items: center;
+    position: relative;
+    background: var(--bg);
+  }
+  .brand-mark::before, .brand-mark::after {
+    content: '';
+    position: absolute;
+    background: var(--red);
+  }
+  .brand-mark::before { width: 2px; height: 14px; top: -6px; left: 50%; transform: translateX(-50%); }
+  .brand-mark::after { width: 2px; height: 14px; bottom: -6px; left: 50%; transform: translateX(-50%); }
+  .brand-mark svg { width: 28px; height: 28px; }
+
+  .brand-text .title {
+    font-family: var(--display);
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    line-height: 1;
+  }
+  .brand-text .sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 0.3em;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+
+  .status-bar {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    align-items: center;
+  }
+  .status-item {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-item .label { color: var(--text-faint); }
+  .status-item .val { color: var(--text); font-weight: 500; }
+  .status-item .val.red { color: var(--red); }
+  .status-item .pulse {
+    width: 8px; height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220,32,32,0.7); opacity: 1; }
+    50% { box-shadow: 0 0 0 8px rgba(220,32,32,0); opacity: 0.6; }
+  }
+
+  .op-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: right;
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+  }
+  .op-id .line1 { color: var(--red); font-weight: 700; }
+  .op-id .line2 { margin-top: 4px; }
+
+  /* ============ TABS ============ */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tab {
+    font-family: var(--display);
+    font-size: 14px;
+    letter-spacing: 0.15em;
+    padding: 14px 28px;
+    background: transparent;
+    border: none;
+    color: var(--text-faint);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    position: relative;
+    border-right: 1px solid var(--line);
+    font-weight: 400;
+  }
+  .tab:first-child { border-left: 1px solid var(--line); }
+  .tab:hover { color: var(--text); background: var(--bg-elev); }
+  .tab.active {
+    color: var(--red);
+    background: var(--bg-elev);
+  }
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 2px;
+    background: var(--red);
+  }
+  .tab-count {
+    font-family: var(--mono);
+    font-size: 10px;
+    margin-left: 8px;
+    padding: 2px 6px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+  }
+  .tab.active .tab-count { border-color: var(--red); color: var(--red); }
+
+  /* ============ VIEW SECTIONS ============ */
+  .view { display: none; }
+  .view.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ MISSIONS TOOLBAR ============ */
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    padding: 12px 22px;
+    background: var(--red);
+    color: #000;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    border: 1px solid var(--red);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .btn:hover::before { opacity: 1; }
+  .btn:hover { background: var(--red-bright); }
+  .btn.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--line);
+  }
+  .btn.secondary:hover { border-color: var(--red); color: var(--red); background: var(--bg-elev); }
+  .btn.secondary::before { display: none; }
+
+  .filter-pills {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .pill {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    padding: 8px 14px;
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  .pill:hover { color: var(--text); }
+  .pill.active { background: var(--red); color: #000; border-color: var(--red); }
+
+  /* ============ MISSIONS LIST ============ */
+  .missions {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .mission {
+    display: grid;
+    grid-template-columns: 48px 80px 1fr 140px 100px 140px 40px;
+    align-items: center;
+    padding: 14px 16px;
+    background: var(--bg-card);
+    border-left: 3px solid var(--line);
+    gap: 16px;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .mission:hover {
+    background: var(--bg-card-hi);
+    border-left-color: var(--red);
+  }
+  .mission.completed {
+    opacity: 0.45;
+    border-left-color: var(--green);
+  }
+  .mission.completed .mission-title { text-decoration: line-through; color: var(--text-dim); }
+  .mission.priority-black { border-left-color: #000; box-shadow: inset 3px 0 0 var(--red); }
+  .mission.priority-red { border-left-color: var(--red); }
+  .mission.priority-amber { border-left-color: var(--amber); }
+  .mission.priority-green { border-left-color: var(--green); }
+  .mission.completed.priority-black,
+  .mission.completed.priority-red,
+  .mission.completed.priority-amber,
+  .mission.completed.priority-green { border-left-color: var(--green); box-shadow: none; }
+
+  .mission-check {
+    width: 24px; height: 24px;
+    border: 2px solid var(--line-hi);
+    background: var(--bg);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .mission-check:hover { border-color: var(--red); }
+  .mission-check.checked {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  .mission-check.checked::after {
+    content: '';
+    width: 10px; height: 6px;
+    border-left: 2px solid #000;
+    border-bottom: 2px solid #000;
+    transform: rotate(-45deg) translate(1px, -2px);
+  }
+
+  .mission-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    font-weight: 500;
+  }
+  .mission-title {
+    font-family: var(--body);
+    font-size: 15px;
+    color: var(--text);
+    font-weight: 400;
+    letter-spacing: 0.03em;
+  }
+  .mission-assignee {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    text-align: center;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    background: var(--bg);
+  }
+  .assignee-joao { color: #f4a574; border-color: rgba(244, 165, 116, 0.35); }
+  .assignee-nuno { color: #a0b8e8; border-color: rgba(160, 184, 232, 0.35); }
+  .assignee-paulo { color: #e8d27c; border-color: rgba(232, 210, 124, 0.35); }
+  .assignee-miguel { color: #90d8a0; border-color: rgba(144, 216, 160, 0.35); }
+  .assignee-todos { color: var(--red); border-color: rgba(220, 32, 32, 0.5); }
+
+  .mission-priority {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 3px 8px;
+    font-weight: 700;
+  }
+  .priority-badge-black { color: #000; background: var(--red); }
+  .priority-badge-red { color: var(--red); background: rgba(220,32,32,0.1); border: 1px solid var(--red); }
+  .priority-badge-amber { color: var(--amber); background: rgba(244,160,32,0.1); border: 1px solid var(--amber); }
+  .priority-badge-green { color: var(--green); background: rgba(74,222,128,0.1); border: 1px solid var(--green); }
+
+  .mission-date {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-align: right;
+  }
+  .mission-date.set { color: var(--text); }
+  .mission-date.overdue { color: var(--red); font-weight: 700; }
+
+  .mission-delete {
+    background: none;
+    border: none;
+    color: var(--text-faint);
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.15s;
+    font-family: var(--mono);
+    font-size: 18px;
+  }
+  .mission-delete:hover { color: var(--red); }
+
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border: 1px dashed var(--line);
+  }
+
+  /* ============ CALENDAR ============ */
+  .cal-container {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 24px;
+  }
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .cal-title {
+    font-family: var(--display);
+    font-size: 24px;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+  .cal-title .year {
+    color: var(--red);
+    margin-left: 12px;
+    font-family: var(--mono);
+    font-size: 16px;
+    letter-spacing: 0.2em;
+  }
+  .cal-nav {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .cal-nav-btn {
+    width: 36px; height: 36px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+    display: grid;
+    place-items: center;
+  }
+  .cal-nav-btn:hover { border-color: var(--red); color: var(--red); }
+  .cal-today-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    padding: 8px 14px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .cal-today-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+  .cal-weekday {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    text-align: center;
+    padding: 10px 4px;
+    background: var(--bg-elev);
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .cal-day {
+    aspect-ratio: 1.2;
+    background: var(--bg);
+    border: 1px solid transparent;
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .cal-day:hover { background: var(--bg-card-hi); border-color: var(--line-hi); }
+  .cal-day.other-month { opacity: 0.25; }
+  .cal-day.today {
+    border-color: var(--red);
+    background: rgba(220, 32, 32, 0.08);
+  }
+  .cal-day.today::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 0;
+    border-top: 10px solid var(--red);
+    border-right: 10px solid transparent;
+  }
+  .cal-day.has-events { background: var(--bg-card); }
+  .cal-day-num {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .cal-day.today .cal-day-num { color: var(--red); font-weight: 700; }
+  .cal-day-events {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+    flex: 1;
+  }
+  .cal-event-dot {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    padding: 2px 4px;
+    background: var(--red);
+    color: #000;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+  }
+  .cal-event-dot.mission { background: transparent; border-left: 2px solid var(--amber); color: var(--amber); padding-left: 4px; }
+  .cal-event-dot.event { background: var(--red); color: #000; }
+  .cal-more {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-faint);
+    margin-top: auto;
+  }
+
+  /* ============ MODAL ============ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s; }
+
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--red);
+    max-width: 540px;
+    width: 100%;
+    position: relative;
+    animation: modalIn 0.25s ease-out;
+  }
+  @keyframes modalIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal::before, .modal::after {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    border: 2px solid var(--red);
+  }
+  .modal::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .modal::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-title {
+    font-family: var(--display);
+    font-size: 18px;
+    letter-spacing: 0.12em;
+    color: var(--red);
+    text-transform: uppercase;
+  }
+  .modal-close {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--text);
+    width: 32px; height: 32px;
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: all 0.15s;
+  }
+  .modal-close:hover { border-color: var(--red); color: var(--red); }
+
+  .modal-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .field-label .req { color: var(--red); margin-left: 4px; }
+  .field input, .field select {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 12px 14px;
+    font-family: var(--body);
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: var(--red);
+  }
+
+  .priority-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .priority-opt {
+    padding: 10px 8px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    cursor: pointer;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .priority-opt:hover { border-color: var(--line-hi); color: var(--text); }
+  .priority-opt.selected.p-black { background: var(--red); color: #000; border-color: var(--red); font-weight: 700; }
+  .priority-opt.selected.p-red { border-color: var(--red); color: var(--red); background: rgba(220,32,32,0.08); }
+  .priority-opt.selected.p-amber { border-color: var(--amber); color: var(--amber); background: rgba(244,160,32,0.08); }
+  .priority-opt.selected.p-green { border-color: var(--green); color: var(--green); background: rgba(74,222,128,0.08); }
+
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  /* ============ STATS ============ */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin-bottom: 20px;
+  }
+  .stat {
+    background: var(--bg-card);
+    padding: 16px 20px;
+    border-left: 3px solid var(--red);
+    position: relative;
+  }
+  .stat:nth-child(2) { border-left-color: var(--amber); }
+  .stat:nth-child(3) { border-left-color: var(--green); }
+  .stat:nth-child(4) { border-left-color: var(--line-hi); }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+  }
+  .stat-value {
+    font-family: var(--display);
+    font-size: 36px;
+    color: var(--text);
+    margin-top: 4px;
+    line-height: 1;
+  }
+  .stat-value.red { color: var(--red); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-value.green { color: var(--green); }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 900px) {
+    .header { grid-template-columns: 1fr; gap: 16px; text-align: center; }
+    .status-bar { justify-content: center; flex-wrap: wrap; gap: 16px; }
+    .op-id { text-align: center; }
+    .mission {
+      grid-template-columns: 32px 1fr 32px;
+      gap: 12px;
+      padding: 12px;
+    }
+    .mission-id, .mission-assignee, .mission-priority, .mission-date {
+      grid-column: 2;
+      justify-self: start;
+    }
+    .mission-title { grid-column: 2; font-size: 14px; }
+    .mission-check { grid-row: 1 / span 5; grid-column: 1; align-self: start; margin-top: 2px; }
+    .mission-delete { grid-row: 1 / span 5; grid-column: 3; align-self: start; }
+    .mission-meta {
+      grid-column: 2;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 10px;
+    }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .cal-day { aspect-ratio: 1; padding: 4px; }
+    .cal-day-num { font-size: 11px; }
+    .cal-event-dot { display: none; }
+    .cal-day.has-events::after {
+      content: '';
+      position: absolute;
+      bottom: 4px; left: 50%;
+      transform: translateX(-50%);
+      width: 4px; height: 4px;
+      background: var(--red);
+      border-radius: 50%;
+    }
+    .tab { padding: 12px 16px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ================ HEADER ================ -->
+  <header class="header">
+    <span class="header-corner tl"></span>
+    <span class="header-corner tr"></span>
+    <span class="header-corner bl"></span>
+    <span class="header-corner br"></span>
+
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#dc2020" stroke-width="4" fill="none" stroke-linecap="round">
+            <circle cx="50" cy="50" r="28"/>
+            <line x1="50" y1="12" x2="50" y2="28"/>
+            <line x1="50" y1="72" x2="50" y2="88"/>
+            <line x1="12" y1="50" x2="28" y2="50"/>
+            <line x1="72" y1="50" x2="88" y2="50"/>
+          </g>
+          <circle cx="50" cy="50" r="5" fill="#dc2020"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="title">MISSION CONTROL</div>
+        <div class="sub">// UNIT MD6 &middot; OPERATIONAL</div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-item">
+        <span class="pulse"></span>
+        <span class="label">STATUS</span>
+        <span class="val red" id="statusIndicator">LIVE</span>
+      </div>
+      <div class="status-item">
+        <span class="label">TIME</span>
+        <span class="val" id="clockTime">--:--:--</span>
+      </div>
+      <div class="status-item">
+        <span class="label">DATE</span>
+        <span class="val" id="clockDate">--</span>
+      </div>
+    </div>
+
+    <div class="op-id">
+      <div class="line1" id="opCode">OP-20260420</div>
+      <div class="line2">SEC.CLEARANCE // 04</div>
+    </div>
+  </header>
+
+  <!-- ================ TABS ================ -->
+  <nav class="tabs">
+    <button class="tab active" data-view="missions">
+      Missões <span class="tab-count" id="countMissions">0</span>
+    </button>
+    <button class="tab" data-view="calendar">
+      Calendário
+    </button>
+  </nav>
+
+  <!-- ================ MISSIONS VIEW ================ -->
+  <section class="view active" id="view-missions">
+
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-label">// Activas</div>
+        <div class="stat-value red" id="statActive">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">// Alta Prior.</div>
+        <div class="stat-value amber" id="statHigh">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">// Concluídas</div>
+        <div class="stat-value green" id="statDone">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">// Total</div>
+        <div class="stat-value" id="statTotal">0</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn" onclick="openMissionModal()">
+        <span>+</span><span>NOVA MISSÃO</span>
+      </button>
+      <button class="btn secondary" onclick="clearCompleted()">LIMPAR CONCLUÍDAS</button>
+
+      <div class="filter-pills">
+        <button class="pill active" data-filter="all">TODAS</button>
+        <button class="pill" data-filter="active">ACTIVAS</button>
+        <button class="pill" data-filter="black">CODE BLACK</button>
+        <button class="pill" data-filter="red">CRÍTICA</button>
+        <button class="pill" data-filter="done">DONE</button>
+      </div>
+    </div>
+
+    <div class="missions" id="missionsList"></div>
+  </section>
+
+  <!-- ================ CALENDAR VIEW ================ -->
+  <section class="view" id="view-calendar">
+    <div class="toolbar">
+      <button class="btn" onclick="openEventModal()">
+        <span>+</span><span>NOVO EVENTO</span>
+      </button>
+    </div>
+
+    <div class="cal-container">
+      <div class="cal-header">
+        <div class="cal-title">
+          <span id="calMonthName">--</span>
+          <span class="year" id="calYear">----</span>
+        </div>
+        <div class="cal-nav">
+          <button class="cal-today-btn" onclick="goToday()">HOJE</button>
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+          <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">Seg</div>
+        <div class="cal-weekday">Ter</div>
+        <div class="cal-weekday">Qua</div>
+        <div class="cal-weekday">Qui</div>
+        <div class="cal-weekday">Sex</div>
+        <div class="cal-weekday">Sab</div>
+        <div class="cal-weekday">Dom</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ================ MISSION MODAL ================ -->
+<div class="modal-overlay" id="missionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="missionModalTitle">// NOVA MISSÃO</div>
+      <button class="modal-close" onclick="closeMissionModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Designação <span class="req">*</span></label>
+        <input type="text" id="fieldTitle" placeholder="Ex: Fotografar produtos..." autocomplete="off">
+      </div>
+      <div class="field">
+        <label class="field-label">Responsável</label>
+        <select id="fieldAssignee">
+          <option value="">-- Não atribuído --</option>
+          <option value="João">João</option>
+          <option value="Nuno">Nuno</option>
+          <option value="Paulo">Paulo</option>
+          <option value="Miguel">Miguel</option>
+          <option value="Todos">Todos</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Prioridade</label>
+        <div class="priority-grid" id="priorityGrid">
+          <div class="priority-opt p-black" data-priority="black">CODE BLACK</div>
+          <div class="priority-opt p-red selected" data-priority="red">CRÍTICA</div>
+          <div class="priority-opt p-amber" data-priority="amber">MÉDIA</div>
+          <div class="priority-opt p-green" data-priority="green">BAIXA</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Data limite (opcional)</label>
+        <input type="date" id="fieldDate">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" onclick="closeMissionModal()">CANCELAR</button>
+      <button class="btn" onclick="saveMission()" id="saveMissionBtn">CONFIRMAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================ EVENT MODAL ================ -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="eventModalTitle">// NOVO EVENTO</div>
+      <button class="modal-close" onclick="closeEventModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Designação <span class="req">*</span></label>
+        <input type="text" id="eventTitle" placeholder="Ex: Briefing Operacional" autocomplete="off">
+      </div>
+      <div class="field">
+        <label class="field-label">Data <span class="req">*</span></label>
+        <input type="date" id="eventDate">
+      </div>
+      <div class="field">
+        <label class="field-label">Hora (opcional)</label>
+        <input type="time" id="eventTime">
+      </div>
+      <div class="field">
+        <label class="field-label">Localização (opcional)</label>
+        <input type="text" id="eventLocation" placeholder="Ex: Bucelas, Parque Aventura">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" id="deleteEventBtn" style="display:none" onclick="deleteCurrentEvent()">ELIMINAR</button>
+      <button class="btn secondary" onclick="closeEventModal()">CANCELAR</button>
+      <button class="btn" onclick="saveEvent()">CONFIRMAR</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ INITIAL DATA ============
+const INITIAL_MISSIONS = [
+  { title: 'Catálogo', assignee: 'João', priority: 'red', date: null },
+  { title: 'Fotografar produtos', assignee: 'Nuno', priority: 'red', date: null },
+  { title: 'Hoodie bordada', assignee: 'Paulo', priority: 'amber', date: null },
+  { title: 'Hoodie Estampada', assignee: 'Paulo', priority: 'amber', date: null },
+  { title: 'Tshirt EDW', assignee: 'Paulo', priority: 'amber', date: null },
+  { title: 'Sacos', assignee: 'Paulo', priority: 'amber', date: null },
+  { title: 'Corta vento', assignee: 'Paulo', priority: 'amber', date: null },
+  { title: 'Mochila', assignee: 'Miguel', priority: 'red', date: '2026-02-25' },
+  { title: 'Chapeus', assignee: 'Miguel', priority: 'red', date: '2026-02-25' },
+  { title: 'Mission Essentials', assignee: 'Todos', priority: 'black', date: null },
+  { title: 'Criar videos Tipo Humbler', assignee: 'Nuno', priority: 'amber', date: null },
+  { title: 'Criar Desafios Diarios', assignee: 'Miguel', priority: 'red', date: '2026-02-18' },
+  { title: 'Criar Treinos para APP', assignee: 'Miguel', priority: 'red', date: '2026-02-18' },
+  { title: 'Criar Fotos para App', assignee: 'Nuno', priority: 'amber', date: null },
+  { title: 'Terminar moeda CPO', assignee: 'Nuno', priority: 'red', date: null },
+  { title: 'Terminar moeda Arcanjo', assignee: 'Miguel', priority: 'red', date: '2026-02-20' },
+  { title: 'Terminar moeda Ampulheta', assignee: 'Miguel', priority: 'red', date: '2026-02-20' },
+  { title: 'Trabalhar INSTA', assignee: 'João', priority: 'amber', date: null },
+  { title: 'Definir ementa das rações', assignee: 'Miguel', priority: 'red', date: '2026-02-18' }
+];
+
+// ============ STATE ============
+let missions = [];
+let events = [];
+let editingMissionId = null;
+let editingEventId = null;
+let selectedPriority = 'red';
+let currentFilter = 'all';
+let calCurrentDate = new Date();
+
+// ============ STORAGE ============
+function loadData() {
+  try {
+    const savedMissions = localStorage.getItem('md6_missions');
+    const savedEvents = localStorage.getItem('md6_events');
+    const savedVersion = localStorage.getItem('md6_version');
+
+    if (savedMissions && savedVersion === '1') {
+      missions = JSON.parse(savedMissions);
+    } else {
+      // Seed with initial data
+      missions = INITIAL_MISSIONS.map((m, i) => ({
+        id: Date.now() + i,
+        ...m,
+        completed: false,
+        created: Date.now() - (INITIAL_MISSIONS.length - i) * 60000
+      }));
+      localStorage.setItem('md6_version', '1');
+    }
+    events = savedEvents ? JSON.parse(savedEvents) : [];
+  } catch (e) {
+    console.error('Storage load failed', e);
+    missions = INITIAL_MISSIONS.map((m, i) => ({
+      id: Date.now() + i, ...m, completed: false, created: Date.now()
+    }));
+    events = [];
+  }
+}
+
+function saveData() {
+  try {
+    localStorage.setItem('md6_missions', JSON.stringify(missions));
+    localStorage.setItem('md6_events', JSON.stringify(events));
+  } catch (e) {
+    console.error('Storage save failed', e);
+  }
+}
+
+// ============ TABS ============
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const view = tab.dataset.view;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('view-' + view).classList.add('active');
+    if (view === 'calendar') renderCalendar();
+  });
+});
+
+// ============ CLOCK ============
+function updateClock() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('clockTime').textContent =
+    `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const months = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  document.getElementById('clockDate').textContent =
+    `${pad(now.getDate())} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('opCode').textContent =
+    `OP-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ============ MISSIONS RENDER ============
+function renderMissions() {
+  const list = document.getElementById('missionsList');
+  let filtered = missions;
+
+  if (currentFilter === 'active') filtered = missions.filter(m => !m.completed);
+  else if (currentFilter === 'done') filtered = missions.filter(m => m.completed);
+  else if (currentFilter === 'black') filtered = missions.filter(m => m.priority === 'black' && !m.completed);
+  else if (currentFilter === 'red') filtered = missions.filter(m => m.priority === 'red' && !m.completed);
+
+  // Sort: incomplete first, then by priority (black > red > amber > green), then by date
+  const priorityOrder = { black: 0, red: 1, amber: 2, green: 3 };
+  filtered = [...filtered].sort((a, b) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    if (a.priority !== b.priority) return priorityOrder[a.priority] - priorityOrder[b.priority];
+    if (a.date && b.date) return a.date.localeCompare(b.date);
+    if (a.date) return -1;
+    if (b.date) return 1;
+    return a.created - b.created;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state">// NENHUMA MISSÃO NESTA CATEGORIA</div>';
+  } else {
+    list.innerHTML = filtered.map((m, idx) => renderMission(m, idx)).join('');
+  }
+
+  // Update stats
+  const active = missions.filter(m => !m.completed).length;
+  const high = missions.filter(m => !m.completed && (m.priority === 'black' || m.priority === 'red')).length;
+  const done = missions.filter(m => m.completed).length;
+  document.getElementById('statActive').textContent = String(active).padStart(2, '0');
+  document.getElementById('statHigh').textContent = String(high).padStart(2, '0');
+  document.getElementById('statDone').textContent = String(done).padStart(2, '0');
+  document.getElementById('statTotal').textContent = String(missions.length).padStart(2, '0');
+  document.getElementById('countMissions').textContent = missions.length;
+}
+
+function renderMission(m, idx) {
+  const priorityLabels = { black: 'CODE BLACK', red: 'CRÍTICA', amber: 'MÉDIA', green: 'BAIXA' };
+  const assigneeClass = m.assignee ? `assignee-${m.assignee.toLowerCase()}` : '';
+  const idStr = `M-${String(missions.findIndex(x => x.id === m.id) + 1).padStart(3, '0')}`;
+
+  let dateStr = '—';
+  let dateClass = '';
+  if (m.date) {
+    const d = new Date(m.date + 'T00:00:00');
+    const today = new Date(); today.setHours(0,0,0,0);
+    const pad = n => String(n).padStart(2, '0');
+    const months = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+    dateStr = `${pad(d.getDate())} ${months[d.getMonth()]}`;
+    dateClass = 'set';
+    if (d < today && !m.completed) { dateClass = 'overdue'; }
+  }
+
+  const isMobile = window.innerWidth <= 900;
+
+  if (isMobile) {
+    return `
+      <div class="mission ${m.completed ? 'completed' : ''} priority-${m.priority}" data-id="${m.id}">
+        <div class="mission-check ${m.completed ? 'checked' : ''}" onclick="toggleMission(${m.id})"></div>
+        <div class="mission-title" onclick="editMission(${m.id})">${escapeHtml(m.title)}</div>
+        <div class="mission-meta">
+          <span class="mission-id">${idStr}</span>
+          ${m.assignee ? `<span class="mission-assignee ${assigneeClass}">${m.assignee}</span>` : ''}
+          <span class="mission-priority priority-badge-${m.priority}">${priorityLabels[m.priority]}</span>
+          ${m.date ? `<span class="mission-date ${dateClass}">${dateStr}</span>` : ''}
+        </div>
+        <button class="mission-delete" onclick="deleteMission(${m.id})">✕</button>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="mission ${m.completed ? 'completed' : ''} priority-${m.priority}" data-id="${m.id}">
+      <div class="mission-check ${m.completed ? 'checked' : ''}" onclick="toggleMission(${m.id})"></div>
+      <div class="mission-id">${idStr}</div>
+      <div class="mission-title" onclick="editMission(${m.id})">${escapeHtml(m.title)}</div>
+      ${m.assignee
+        ? `<div class="mission-assignee ${assigneeClass}">${m.assignee}</div>`
+        : `<div class="mission-assignee">—</div>`}
+      <div class="mission-priority priority-badge-${m.priority}">${priorityLabels[m.priority]}</div>
+      <div class="mission-date ${dateClass}">${dateStr}</div>
+      <button class="mission-delete" onclick="deleteMission(${m.id})" title="Eliminar">✕</button>
+    </div>
+  `;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ============ FILTERS ============
+document.querySelectorAll('.pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    currentFilter = pill.dataset.filter;
+    renderMissions();
+  });
+});
+
+// ============ MISSION CRUD ============
+function toggleMission(id) {
+  const m = missions.find(x => x.id === id);
+  if (m) {
+    m.completed = !m.completed;
+    saveData();
+    renderMissions();
+  }
+}
+
+function deleteMission(id) {
+  if (!confirm('Eliminar esta missão?')) return;
+  missions = missions.filter(m => m.id !== id);
+  saveData();
+  renderMissions();
+}
+
+function clearCompleted() {
+  const completedCount = missions.filter(m => m.completed).length;
+  if (completedCount === 0) return;
+  if (!confirm(`Eliminar ${completedCount} missão(ões) concluída(s)?`)) return;
+  missions = missions.filter(m => !m.completed);
+  saveData();
+  renderMissions();
+}
+
+function openMissionModal(id) {
+  editingMissionId = id || null;
+  document.getElementById('missionModalTitle').textContent =
+    id ? '// EDITAR MISSÃO' : '// NOVA MISSÃO';
+  document.getElementById('saveMissionBtn').textContent =
+    id ? 'ACTUALIZAR' : 'CONFIRMAR';
+
+  if (id) {
+    const m = missions.find(x => x.id === id);
+    document.getElementById('fieldTitle').value = m.title;
+    document.getElementById('fieldAssignee').value = m.assignee || '';
+    document.getElementById('fieldDate').value = m.date || '';
+    selectedPriority = m.priority;
+  } else {
+    document.getElementById('fieldTitle').value = '';
+    document.getElementById('fieldAssignee').value = '';
+    document.getElementById('fieldDate').value = '';
+    selectedPriority = 'red';
+  }
+  updatePrioritySelection();
+  document.getElementById('missionModal').classList.add('open');
+  setTimeout(() => document.getElementById('fieldTitle').focus(), 50);
+}
+
+function editMission(id) { openMissionModal(id); }
+
+function closeMissionModal() {
+  document.getElementById('missionModal').classList.remove('open');
+  editingMissionId = null;
+}
+
+function updatePrioritySelection() {
+  document.querySelectorAll('#priorityGrid .priority-opt').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.priority === selectedPriority);
+  });
+}
+
+document.querySelectorAll('#priorityGrid .priority-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    selectedPriority = opt.dataset.priority;
+    updatePrioritySelection();
+  });
+});
+
+function saveMission() {
+  const title = document.getElementById('fieldTitle').value.trim();
+  if (!title) {
+    document.getElementById('fieldTitle').focus();
+    document.getElementById('fieldTitle').style.borderColor = 'var(--red)';
+    return;
+  }
+  const assignee = document.getElementById('fieldAssignee').value;
+  const date = document.getElementById('fieldDate').value || null;
+
+  if (editingMissionId) {
+    const m = missions.find(x => x.id === editingMissionId);
+    m.title = title;
+    m.assignee = assignee;
+    m.priority = selectedPriority;
+    m.date = date;
+  } else {
+    missions.push({
+      id: Date.now(),
+      title, assignee, priority: selectedPriority, date,
+      completed: false,
+      created: Date.now()
+    });
+  }
+  saveData();
+  renderMissions();
+  closeMissionModal();
+}
+
+// Enter key in mission form
+document.getElementById('fieldTitle').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveMission();
+});
+
+// ============ CALENDAR ============
+function renderCalendar() {
+  const year = calCurrentDate.getFullYear();
+  const month = calCurrentDate.getMonth();
+
+  const monthNames = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO',
+                      'JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+  document.getElementById('calMonthName').textContent = monthNames[month];
+  document.getElementById('calYear').textContent = year;
+
+  // Monday-first week
+  const firstDay = new Date(year, month, 1);
+  let startOffset = firstDay.getDay() - 1;
+  if (startOffset < 0) startOffset = 6; // Sunday becomes 6
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  let html = '';
+
+  // Prev month days
+  for (let i = startOffset; i > 0; i--) {
+    const d = daysInPrevMonth - i + 1;
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
+  }
+
+  // Current month days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dateObj = new Date(year, month, d);
+    const isToday = dateObj.getTime() === today.getTime();
+
+    // Get events for this day
+    const dayEvents = events.filter(e => e.date === dateStr);
+    const dayMissions = missions.filter(m => m.date === dateStr && !m.completed);
+    const total = dayEvents.length + dayMissions.length;
+    const hasEvents = total > 0;
+
+    let eventsHtml = '';
+    let shown = 0;
+    const maxShow = 3;
+    for (const e of dayEvents) {
+      if (shown >= maxShow) break;
+      eventsHtml += `<div class="cal-event-dot event" onclick="event.stopPropagation(); openEventModal('${e.id}')">${escapeHtml(e.title)}</div>`;
+      shown++;
+    }
+    for (const m of dayMissions) {
+      if (shown >= maxShow) break;
+      eventsHtml += `<div class="cal-event-dot mission">${escapeHtml(m.title)}</div>`;
+      shown++;
+    }
+    if (total > maxShow) {
+      eventsHtml += `<div class="cal-more">+${total - maxShow}</div>`;
+    }
+
+    html += `<div class="cal-day ${isToday ? 'today' : ''} ${hasEvents ? 'has-events' : ''}" onclick="openEventModalForDate('${dateStr}')">
+      <div class="cal-day-num">${d}</div>
+      <div class="cal-day-events">${eventsHtml}</div>
+    </div>`;
+  }
+
+  // Next month fill
+  const totalCells = startOffset + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+function changeMonth(delta) {
+  calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
+  renderCalendar();
+}
+
+function goToday() {
+  calCurrentDate = new Date();
+  renderCalendar();
+}
+
+// ============ EVENTS ============
+function openEventModal(id) {
+  editingEventId = id || null;
+  document.getElementById('eventModalTitle').textContent =
+    id ? '// EDITAR EVENTO' : '// NOVO EVENTO';
+  document.getElementById('deleteEventBtn').style.display = id ? 'inline-flex' : 'none';
+
+  if (id) {
+    const ev = events.find(e => e.id === id);
+    document.getElementById('eventTitle').value = ev.title;
+    document.getElementById('eventDate').value = ev.date;
+    document.getElementById('eventTime').value = ev.time || '';
+    document.getElementById('eventLocation').value = ev.location || '';
+  } else {
+    document.getElementById('eventTitle').value = '';
+    const today = new Date();
+    document.getElementById('eventDate').value =
+      `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    document.getElementById('eventTime').value = '';
+    document.getElementById('eventLocation').value = '';
+  }
+
+  document.getElementById('eventModal').classList.add('open');
+  setTimeout(() => document.getElementById('eventTitle').focus(), 50);
+}
+
+function openEventModalForDate(dateStr) {
+  // If there's already an event, edit the first one; otherwise create new
+  const existing = events.find(e => e.date === dateStr);
+  if (existing) {
+    openEventModal(existing.id);
+  } else {
+    editingEventId = null;
+    document.getElementById('eventModalTitle').textContent = '// NOVO EVENTO';
+    document.getElementById('deleteEventBtn').style.display = 'none';
+    document.getElementById('eventTitle').value = '';
+    document.getElementById('eventDate').value = dateStr;
+    document.getElementById('eventTime').value = '';
+    document.getElementById('eventLocation').value = '';
+    document.getElementById('eventModal').classList.add('open');
+    setTimeout(() => document.getElementById('eventTitle').focus(), 50);
+  }
+}
+
+function closeEventModal() {
+  document.getElementById('eventModal').classList.remove('open');
+  editingEventId = null;
+}
+
+function saveEvent() {
+  const title = document.getElementById('eventTitle').value.trim();
+  const date = document.getElementById('eventDate').value;
+  if (!title || !date) {
+    if (!title) document.getElementById('eventTitle').focus();
+    else document.getElementById('eventDate').focus();
+    return;
+  }
+  const time = document.getElementById('eventTime').value;
+  const location = document.getElementById('eventLocation').value.trim();
+
+  if (editingEventId) {
+    const ev = events.find(e => e.id === editingEventId);
+    ev.title = title;
+    ev.date = date;
+    ev.time = time;
+    ev.location = location;
+  } else {
+    events.push({
+      id: 'ev_' + Date.now(),
+      title, date, time, location
+    });
+  }
+  saveData();
+  renderCalendar();
+  closeEventModal();
+}
+
+function deleteCurrentEvent() {
+  if (!editingEventId) return;
+  if (!confirm('Eliminar este evento?')) return;
+  events = events.filter(e => e.id !== editingEventId);
+  saveData();
+  renderCalendar();
+  closeEventModal();
+}
+
+document.getElementById('eventTitle').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveEvent();
+});
+
+// ============ KEYBOARD SHORTCUTS ============
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeMissionModal();
+    closeEventModal();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+    e.preventDefault();
+    const activeTab = document.querySelector('.tab.active').dataset.view;
+    if (activeTab === 'missions') openMissionModal();
+    else openEventModal();
+  }
+});
+
+// Close modals on overlay click
+document.getElementById('missionModal').addEventListener('click', e => {
+  if (e.target.id === 'missionModal') closeMissionModal();
+});
+document.getElementById('eventModal').addEventListener('click', e => {
+  if (e.target.id === 'eventModal') closeEventModal();
+});
+
+// Rerender on resize (mobile layout switch)
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(renderMissions, 150);
+});
+
+// ============ INIT ============
+loadData();
+renderMissions();
+renderCalendar();
+
+// Reset border color on title input
+document.getElementById('fieldTitle').addEventListener('input', function() {
+  this.style.borderColor = '';
+});
+</script>
+
+</body>
+</html>
