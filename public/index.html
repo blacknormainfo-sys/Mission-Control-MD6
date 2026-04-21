@@ -305,12 +305,12 @@
   }
   .mission {
     display: grid;
-    grid-template-columns: 48px 80px 1fr 140px 100px 140px 40px;
+    grid-template-columns: 40px 72px 1fr 120px 110px 160px 90px 36px;
     align-items: center;
     padding: 14px 16px;
     background: var(--bg-card);
     border-left: 3px solid var(--line);
-    gap: 16px;
+    gap: 14px;
     transition: all 0.15s;
     position: relative;
   }
@@ -331,6 +331,15 @@
   .mission.completed.priority-red,
   .mission.completed.priority-amber,
   .mission.completed.priority-green { border-left-color: var(--green); box-shadow: none; }
+
+  .mission.flash {
+    animation: missionFlash 0.5s ease-out;
+  }
+  @keyframes missionFlash {
+    0% { background: rgba(220, 32, 32, 0.4); border-left-color: var(--red); transform: translateX(2px); }
+    50% { background: rgba(220, 32, 32, 0.15); }
+    100% { background: var(--bg-card); transform: translateX(0); }
+  }
 
   .mission-check {
     width: 24px; height: 24px;
@@ -369,16 +378,43 @@
     font-weight: 400;
     letter-spacing: 0.03em;
   }
-  .mission-assignee {
+  .mission-assignee, .inline-select {
     font-family: var(--mono);
     font-size: 11px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding: 4px 10px;
+    padding: 5px 10px;
     text-align: center;
     border: 1px solid var(--line);
     color: var(--text-dim);
+    background-color: var(--bg);
+    cursor: pointer;
+    transition: all 0.15s;
+    width: 100%;
+    font-weight: 500;
+    /* Native select reset */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--text-faint) 50%),
+                      linear-gradient(135deg, var(--text-faint) 50%, transparent 50%);
+    background-position: calc(100% - 10px) 50%, calc(100% - 6px) 50%;
+    background-size: 4px 4px, 4px 4px;
+    background-repeat: no-repeat;
+    padding-right: 20px;
+  }
+  .mission-assignee:hover, .inline-select:hover {
+    border-color: var(--red);
+    color: var(--text);
+  }
+  .mission-assignee:focus, .inline-select:focus {
+    outline: none;
+    border-color: var(--red);
+    box-shadow: 0 0 0 2px rgba(220,32,32,0.3);
+  }
+  .mission-assignee option, .inline-select option {
     background: var(--bg);
+    color: var(--text);
   }
   .assignee-joao { color: #f4a574; border-color: rgba(244, 165, 116, 0.35); }
   .assignee-nuno { color: #a0b8e8; border-color: rgba(160, 184, 232, 0.35); }
@@ -392,23 +428,111 @@
     letter-spacing: 0.2em;
     text-transform: uppercase;
     text-align: center;
-    padding: 3px 8px;
+    padding: 5px 8px;
     font-weight: 700;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: var(--bg);
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                      linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 8px) 50%, calc(100% - 4px) 50%;
+    background-size: 4px 4px, 4px 4px;
+    background-repeat: no-repeat;
+    padding-right: 18px;
+    transition: all 0.2s;
   }
-  .priority-badge-black { color: #000; background: var(--red); }
-  .priority-badge-red { color: var(--red); background: rgba(220,32,32,0.1); border: 1px solid var(--red); }
-  .priority-badge-amber { color: var(--amber); background: rgba(244,160,32,0.1); border: 1px solid var(--amber); }
-  .priority-badge-green { color: var(--green); background: rgba(74,222,128,0.1); border: 1px solid var(--green); }
+  .mission-priority:hover { filter: brightness(1.15); }
+  .mission-priority:focus { outline: none; box-shadow: 0 0 0 2px rgba(220,32,32,0.4); }
+  .mission-priority option { background: var(--bg); color: var(--text); font-weight: 700; }
 
-  .mission-date {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 0.1em;
-    text-align: right;
+  .priority-badge-black {
+    color: #000 !important;
+    background-color: var(--red) !important;
+    border-color: var(--red) !important;
   }
-  .mission-date.set { color: var(--text); }
-  .mission-date.overdue { color: var(--red); font-weight: 700; }
+  .priority-badge-red {
+    color: var(--red) !important;
+    background-color: rgba(220,32,32,0.12) !important;
+    border-color: var(--red) !important;
+  }
+  .priority-badge-amber {
+    color: var(--amber) !important;
+    background-color: rgba(244,160,32,0.12) !important;
+    border-color: var(--amber) !important;
+  }
+  .priority-badge-green {
+    color: var(--green) !important;
+    background-color: rgba(74,222,128,0.12) !important;
+    border-color: var(--green) !important;
+  }
+
+  .mission-dates {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .mission-dates .date-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .mission-dates .date-label {
+    color: var(--text-faint);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    min-width: 22px;
+  }
+  .mission-dates .date-val { color: var(--text); }
+  .mission-dates .date-val.overdue { color: var(--red); font-weight: 700; }
+  .mission-dates .date-val.empty { color: var(--text-faint); font-style: italic; }
+
+  .mission-countdown {
+    font-family: var(--display);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-align: center;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .mission-countdown .num {
+    display: block;
+    font-size: 18px;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .mission-countdown .lbl {
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    color: var(--text-faint);
+  }
+  .mission-countdown.ok { border-color: var(--green); color: var(--green); }
+  .mission-countdown.ok .lbl { color: rgba(74,222,128,0.6); }
+  .mission-countdown.soon { border-color: var(--amber); color: var(--amber); }
+  .mission-countdown.soon .lbl { color: rgba(244,160,32,0.6); }
+  .mission-countdown.urgent { border-color: var(--red); color: var(--red); background: rgba(220,32,32,0.05); }
+  .mission-countdown.urgent .lbl { color: rgba(220,32,32,0.6); }
+  .mission-countdown.overdue {
+    border-color: var(--red);
+    color: #000;
+    background: var(--red);
+    animation: blink 1.5s infinite;
+  }
+  .mission-countdown.overdue .lbl { color: rgba(0,0,0,0.6); }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
 
   .mission-delete {
     background: none;
@@ -571,6 +695,16 @@
   }
   .cal-event-dot.mission { background: transparent; border-left: 2px solid var(--amber); color: var(--amber); padding-left: 4px; }
   .cal-event-dot.event { background: var(--red); color: #000; }
+  .cal-event-dot.event.span-start { border-right: 2px dashed #000; }
+  .cal-event-dot.event.span-middle {
+    background: rgba(220, 32, 32, 0.5);
+    border-left: 2px dashed #000;
+    border-right: 2px dashed #000;
+  }
+  .cal-event-dot.event.span-end {
+    background: var(--red);
+    border-left: 2px dashed #000;
+  }
   .cal-more {
     font-family: var(--mono);
     font-size: 9px;
@@ -692,6 +826,29 @@
   .priority-opt.selected.p-amber { border-color: var(--amber); color: var(--amber); background: rgba(244,160,32,0.08); }
   .priority-opt.selected.p-green { border-color: var(--green); color: var(--green); background: rgba(74,222,128,0.08); }
 
+  .date-range {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .date-range .field { gap: 6px; }
+  .date-range .field-label { font-size: 9px; }
+
+  .duration-preview {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px dashed var(--line);
+    text-align: center;
+    text-transform: uppercase;
+    margin-top: -10px;
+  }
+  .duration-preview.set { color: var(--red); border-color: var(--red); border-style: solid; }
+  .duration-preview.err { color: var(--amber); border-color: var(--amber); }
+
   .modal-footer {
     padding: 16px 24px;
     border-top: 1px solid var(--line);
@@ -735,6 +892,307 @@
   .stat-value.amber { color: var(--amber); }
   .stat-value.green { color: var(--green); }
 
+  /* ============ DASHBOARD ============ */
+  .dash-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin-bottom: 24px;
+  }
+  .dash-sum-card {
+    background: var(--bg-card);
+    padding: 18px 20px;
+    position: relative;
+    border-top: 1px solid var(--line);
+  }
+  .dash-sum-card::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 0;
+    width: 30px;
+    height: 2px;
+    background: var(--red);
+  }
+  .dash-sum-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+  }
+  .dash-sum-value {
+    font-family: var(--display);
+    font-size: 32px;
+    color: var(--red);
+    margin-top: 8px;
+    line-height: 1;
+    letter-spacing: 0.05em;
+  }
+  .dash-sum-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin-top: 8px;
+    text-transform: uppercase;
+  }
+
+  .dash-section {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .dash-section::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px;
+    width: 12px; height: 12px;
+    border-top: 2px solid var(--red);
+    border-left: 2px solid var(--red);
+  }
+  .dash-section::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; right: -1px;
+    width: 12px; height: 12px;
+    border-bottom: 2px solid var(--red);
+    border-right: 2px solid var(--red);
+  }
+  .dash-section-title {
+    font-family: var(--display);
+    font-size: 14px;
+    letter-spacing: 0.15em;
+    color: var(--text);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dash-section-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-faint);
+    margin-left: auto;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+  .dash-dot {
+    width: 8px; height: 8px;
+    background: var(--red);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  /* Bar chart rows */
+  .bar-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 56px;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .bar-row:last-child { border-bottom: none; }
+  .bar-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .bar-label.joao { color: #f4a574; }
+  .bar-label.nuno { color: #a0b8e8; }
+  .bar-label.paulo { color: #e8d27c; }
+  .bar-label.miguel { color: #90d8a0; }
+  .bar-label.todos { color: var(--red); }
+  .bar-label.unassigned { color: var(--text-faint); }
+
+  .bar-track {
+    height: 22px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: var(--red);
+    position: relative;
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+  }
+  .bar-fill.joao { background: #f4a574; }
+  .bar-fill.nuno { background: #a0b8e8; }
+  .bar-fill.paulo { background: #e8d27c; }
+  .bar-fill.miguel { background: #90d8a0; }
+  .bar-fill.todos { background: var(--red); }
+  .bar-fill.unassigned { background: var(--line-hi); }
+
+  .bar-segments {
+    height: 100%;
+    display: flex;
+    width: 100%;
+    transition: opacity 0.3s;
+  }
+  .bar-seg {
+    height: 100%;
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .bar-seg.overdue { background: var(--red); }
+  .bar-seg.urgent { background: var(--amber); }
+  .bar-seg.active { background: var(--text); opacity: 0.55; }
+  .bar-seg.done { background: var(--green); opacity: 0.55; }
+
+  /* Priority-colored segments (match mission row badges) */
+  .bar-seg.prio-black {
+    background: #000;
+    border-right: 2px solid var(--red);
+    box-shadow: inset 3px 0 0 var(--red);
+  }
+  .bar-seg.prio-red { background: var(--red); }
+  .bar-seg.prio-amber { background: var(--amber); }
+  .bar-seg.prio-green { background: var(--green); opacity: 0.85; }
+  .bar-seg.done-only {
+    background: rgba(74, 222, 128, 0.25);
+    border: 1px dashed var(--green);
+    opacity: 0.8;
+  }
+
+  .seg-count {
+    font-family: var(--display);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: #000;
+    font-weight: 700;
+    padding: 0 4px;
+    text-shadow: 0 0 2px rgba(255,255,255,0.3);
+  }
+  .bar-seg.prio-black .seg-count { color: var(--red); text-shadow: none; }
+  .bar-seg.done-only .seg-count { color: var(--green); text-shadow: none; font-size: 10px; }
+
+  .bar-value-done {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--green);
+    margin-left: 6px;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+  }
+
+  .legend-swatch.prio-black {
+    background: #000;
+    box-shadow: inset 3px 0 0 var(--red);
+  }
+  .legend-swatch.prio-red { background: var(--red); }
+  .legend-swatch.prio-amber { background: var(--amber); }
+  .legend-swatch.prio-green { background: var(--green); opacity: 0.85; }
+
+  .bar-value {
+    font-family: var(--display);
+    font-size: 18px;
+    color: var(--text);
+    text-align: right;
+    letter-spacing: 0.05em;
+  }
+
+  /* Days chart */
+  .days-grid {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .days-grid:last-child { border-bottom: none; }
+  .days-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .days-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 60px;
+    align-items: center;
+    gap: 10px;
+  }
+  .days-row-lbl {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+  }
+  .days-track {
+    height: 14px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  .days-fill {
+    height: 100%;
+    background: var(--red);
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .days-fill.avg { background: var(--amber); }
+  .days-fill.max { background: var(--red); }
+  .days-fill.noop { background: var(--line-hi); opacity: 0.3; }
+  .days-val {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+    font-weight: 700;
+    text-align: right;
+    letter-spacing: 0.08em;
+  }
+  .days-val.empty { color: var(--text-faint); font-weight: 400; }
+
+  .chart-legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 12px; height: 12px; flex-shrink: 0; }
+  .legend-swatch.overdue { background: var(--red); }
+  .legend-swatch.urgent { background: var(--amber); }
+  .legend-swatch.active { background: var(--text); opacity: 0.55; }
+  .legend-swatch.done { background: var(--green); opacity: 0.55; }
+
+  .empty-chart {
+    padding: 40px 20px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
   /* ============ RESPONSIVE ============ */
   @media (max-width: 900px) {
     .header { grid-template-columns: 1fr; gap: 16px; text-align: center; }
@@ -745,13 +1203,14 @@
       gap: 12px;
       padding: 12px;
     }
-    .mission-id, .mission-assignee, .mission-priority, .mission-date {
+    .mission-id, .mission-assignee, .mission-priority, .mission-dates, .mission-countdown {
       grid-column: 2;
-      justify-self: start;
+      justify-self: stretch;
+      width: auto;
     }
     .mission-title { grid-column: 2; font-size: 14px; }
-    .mission-check { grid-row: 1 / span 5; grid-column: 1; align-self: start; margin-top: 2px; }
-    .mission-delete { grid-row: 1 / span 5; grid-column: 3; align-self: start; }
+    .mission-check { grid-row: 1 / span 6; grid-column: 1; align-self: start; margin-top: 2px; }
+    .mission-delete { grid-row: 1 / span 6; grid-column: 3; align-self: start; }
     .mission-meta {
       grid-column: 2;
       display: flex;
@@ -773,6 +1232,17 @@
       border-radius: 50%;
     }
     .tab { padding: 12px 16px; font-size: 12px; }
+    .dash-summary { grid-template-columns: repeat(2, 1fr); }
+    .dash-sum-value { font-size: 24px; }
+    .dash-section { padding: 16px; }
+    .dash-section-title { font-size: 12px; flex-wrap: wrap; }
+    .dash-section-sub { margin-left: 0; width: 100%; font-size: 9px; }
+    .bar-row { grid-template-columns: 80px 1fr 44px; gap: 8px; }
+    .bar-label { font-size: 10px; }
+    .bar-value { font-size: 14px; }
+    .days-grid { grid-template-columns: 1fr; gap: 6px; }
+    .days-row { grid-template-columns: 44px 1fr 44px; gap: 6px; }
+    .days-val { font-size: 10px; }
   }
 </style>
 </head>
@@ -835,6 +1305,9 @@
     </button>
     <button class="tab" data-view="calendar">
       Calendário
+    </button>
+    <button class="tab" data-view="dashboard">
+      Dashboard
     </button>
   </nav>
 
@@ -911,6 +1384,61 @@
     </div>
   </section>
 
+  <!-- ================ DASHBOARD VIEW ================ -->
+  <section class="view" id="view-dashboard">
+
+    <div class="dash-summary">
+      <div class="dash-sum-card">
+        <div class="dash-sum-label">// TOTAL OPERACIONAIS</div>
+        <div class="dash-sum-value" id="dashTotalOps">0</div>
+        <div class="dash-sum-sub">operativos activos</div>
+      </div>
+      <div class="dash-sum-card">
+        <div class="dash-sum-label">// MÉDIA MISSÕES / OP</div>
+        <div class="dash-sum-value" id="dashAvgMissions">0</div>
+        <div class="dash-sum-sub">por operativo</div>
+      </div>
+      <div class="dash-sum-card">
+        <div class="dash-sum-label">// MAIS CARREGADO</div>
+        <div class="dash-sum-value" id="dashTopOp">—</div>
+        <div class="dash-sum-sub" id="dashTopOpCount">— missões</div>
+      </div>
+      <div class="dash-sum-card">
+        <div class="dash-sum-label">// TAXA DE EFICÁCIA</div>
+        <div class="dash-sum-value" id="dashEfficiency">0%</div>
+        <div class="dash-sum-sub">concluídas / total</div>
+      </div>
+    </div>
+
+    <div class="dash-section">
+      <div class="dash-section-title">
+        <span class="dash-dot"></span>
+        <span>CARGA OPERACIONAL POR OPERATIVO</span>
+        <span class="dash-section-sub">total de missões atribuídas</span>
+      </div>
+      <div id="dashBarChart"></div>
+    </div>
+
+    <div class="dash-section">
+      <div class="dash-section-title">
+        <span class="dash-dot"></span>
+        <span>DISTRIBUIÇÃO DE PRIORIDADES</span>
+        <span class="dash-section-sub">por operativo · missões activas segmentadas por nível</span>
+      </div>
+      <div id="dashStackedChart"></div>
+    </div>
+
+    <div class="dash-section">
+      <div class="dash-section-title">
+        <span class="dash-dot"></span>
+        <span>DIAS DECORRIDOS</span>
+        <span class="dash-section-sub">tempo médio e máximo de missões activas</span>
+      </div>
+      <div id="dashDaysChart"></div>
+    </div>
+
+  </section>
+
 </div>
 
 <!-- ================ MISSION MODAL ================ -->
@@ -945,10 +1473,17 @@
           <div class="priority-opt p-green" data-priority="green">BAIXA</div>
         </div>
       </div>
-      <div class="field">
-        <label class="field-label">Data limite (opcional)</label>
-        <input type="date" id="fieldDate">
+      <div class="date-range">
+        <div class="field">
+          <label class="field-label">Data Início</label>
+          <input type="date" id="fieldStartDate">
+        </div>
+        <div class="field">
+          <label class="field-label">Data Fim</label>
+          <input type="date" id="fieldEndDate">
+        </div>
       </div>
+      <div class="duration-preview" id="durationPreview">// DEFINA DATAS PARA VER DURAÇÃO</div>
     </div>
     <div class="modal-footer">
       <button class="btn secondary" onclick="closeMissionModal()">CANCELAR</button>
@@ -969,14 +1504,27 @@
         <label class="field-label">Designação <span class="req">*</span></label>
         <input type="text" id="eventTitle" placeholder="Ex: Briefing Operacional" autocomplete="off">
       </div>
-      <div class="field">
-        <label class="field-label">Data <span class="req">*</span></label>
-        <input type="date" id="eventDate">
+      <div class="date-range">
+        <div class="field">
+          <label class="field-label">Data Início <span class="req">*</span></label>
+          <input type="date" id="eventStartDate">
+        </div>
+        <div class="field">
+          <label class="field-label">Hora Início</label>
+          <input type="time" id="eventStartTime">
+        </div>
       </div>
-      <div class="field">
-        <label class="field-label">Hora (opcional)</label>
-        <input type="time" id="eventTime">
+      <div class="date-range">
+        <div class="field">
+          <label class="field-label">Data Fim</label>
+          <input type="date" id="eventEndDate">
+        </div>
+        <div class="field">
+          <label class="field-label">Hora Fim</label>
+          <input type="time" id="eventEndTime">
+        </div>
       </div>
+      <div class="duration-preview" id="eventDurationPreview">// DEFINA DATAS PARA VER DURAÇÃO</div>
       <div class="field">
         <label class="field-label">Localização (opcional)</label>
         <input type="text" id="eventLocation" placeholder="Ex: Bucelas, Parque Aventura">
@@ -992,27 +1540,32 @@
 
 <script>
 // ============ INITIAL DATA ============
+// Seed date: Feb 15, 2026 — day the task list was created
+const SEED_START = '2026-02-15';
+
 const INITIAL_MISSIONS = [
-  { title: 'Catálogo', assignee: 'João', priority: 'red', date: null },
-  { title: 'Fotografar produtos', assignee: 'Nuno', priority: 'red', date: null },
-  { title: 'Hoodie bordada', assignee: 'Paulo', priority: 'amber', date: null },
-  { title: 'Hoodie Estampada', assignee: 'Paulo', priority: 'amber', date: null },
-  { title: 'Tshirt EDW', assignee: 'Paulo', priority: 'amber', date: null },
-  { title: 'Sacos', assignee: 'Paulo', priority: 'amber', date: null },
-  { title: 'Corta vento', assignee: 'Paulo', priority: 'amber', date: null },
-  { title: 'Mochila', assignee: 'Miguel', priority: 'red', date: '2026-02-25' },
-  { title: 'Chapeus', assignee: 'Miguel', priority: 'red', date: '2026-02-25' },
-  { title: 'Mission Essentials', assignee: 'Todos', priority: 'black', date: null },
-  { title: 'Criar videos Tipo Humbler', assignee: 'Nuno', priority: 'amber', date: null },
-  { title: 'Criar Desafios Diarios', assignee: 'Miguel', priority: 'red', date: '2026-02-18' },
-  { title: 'Criar Treinos para APP', assignee: 'Miguel', priority: 'red', date: '2026-02-18' },
-  { title: 'Criar Fotos para App', assignee: 'Nuno', priority: 'amber', date: null },
-  { title: 'Terminar moeda CPO', assignee: 'Nuno', priority: 'red', date: null },
-  { title: 'Terminar moeda Arcanjo', assignee: 'Miguel', priority: 'red', date: '2026-02-20' },
-  { title: 'Terminar moeda Ampulheta', assignee: 'Miguel', priority: 'red', date: '2026-02-20' },
-  { title: 'Trabalhar INSTA', assignee: 'João', priority: 'amber', date: null },
-  { title: 'Definir ementa das rações', assignee: 'Miguel', priority: 'red', date: '2026-02-18' }
+  { title: 'Catálogo', assignee: 'João', priority: 'red', startDate: SEED_START, endDate: null },
+  { title: 'Fotografar produtos', assignee: 'Nuno', priority: 'red', startDate: SEED_START, endDate: null },
+  { title: 'Hoodie bordada', assignee: 'Paulo', priority: 'amber', startDate: SEED_START, endDate: null },
+  { title: 'Hoodie Estampada', assignee: 'Paulo', priority: 'amber', startDate: SEED_START, endDate: null },
+  { title: 'Tshirt EDW', assignee: 'Paulo', priority: 'amber', startDate: SEED_START, endDate: null },
+  { title: 'Sacos', assignee: 'Paulo', priority: 'amber', startDate: SEED_START, endDate: null },
+  { title: 'Corta vento', assignee: 'Paulo', priority: 'amber', startDate: SEED_START, endDate: null },
+  { title: 'Mochila', assignee: 'Miguel', priority: 'red', startDate: SEED_START, endDate: '2026-02-25' },
+  { title: 'Chapeus', assignee: 'Miguel', priority: 'red', startDate: SEED_START, endDate: '2026-02-25' },
+  { title: 'Mission Essentials', assignee: 'Todos', priority: 'black', startDate: SEED_START, endDate: null },
+  { title: 'Criar videos Tipo Humbler', assignee: 'Nuno', priority: 'amber', startDate: SEED_START, endDate: null },
+  { title: 'Criar Desafios Diarios', assignee: 'Miguel', priority: 'red', startDate: SEED_START, endDate: '2026-02-18' },
+  { title: 'Criar Treinos para APP', assignee: 'Miguel', priority: 'red', startDate: SEED_START, endDate: '2026-02-18' },
+  { title: 'Criar Fotos para App', assignee: 'Nuno', priority: 'amber', startDate: SEED_START, endDate: null },
+  { title: 'Terminar moeda CPO', assignee: 'Nuno', priority: 'red', startDate: SEED_START, endDate: null },
+  { title: 'Terminar moeda Arcanjo', assignee: 'Miguel', priority: 'red', startDate: SEED_START, endDate: '2026-02-20' },
+  { title: 'Terminar moeda Ampulheta', assignee: 'Miguel', priority: 'red', startDate: SEED_START, endDate: '2026-02-20' },
+  { title: 'Trabalhar INSTA', assignee: 'João', priority: 'amber', startDate: SEED_START, endDate: null },
+  { title: 'Definir ementa das rações', assignee: 'Miguel', priority: 'red', startDate: SEED_START, endDate: '2026-02-18' }
 ];
+
+const SCHEMA_VERSION = '3';
 
 // ============ STATE ============
 let missions = [];
@@ -1030,8 +1583,32 @@ function loadData() {
     const savedEvents = localStorage.getItem('md6_events');
     const savedVersion = localStorage.getItem('md6_version');
 
-    if (savedMissions && savedVersion === '1') {
-      missions = JSON.parse(savedMissions);
+    if (savedMissions) {
+      let parsed = JSON.parse(savedMissions);
+
+      // Migrations
+      if (savedVersion !== SCHEMA_VERSION) {
+        parsed = parsed.map(m => {
+          // v1 -> v2: single `date` field to startDate + endDate
+          if ('date' in m && !('endDate' in m)) {
+            const { date, ...rest } = m;
+            m = { ...rest, startDate: null, endDate: date || null };
+          }
+          // Ensure schema fields exist
+          if (!('startDate' in m)) m.startDate = null;
+          if (!('endDate' in m)) m.endDate = null;
+
+          // v2 -> v3: backfill startDate with SEED_START for missions that match
+          // an initial seed item by title and have no startDate yet
+          if (!m.startDate) {
+            const seed = INITIAL_MISSIONS.find(s => s.title === m.title);
+            if (seed) m.startDate = seed.startDate;
+          }
+          return m;
+        });
+        localStorage.setItem('md6_version', SCHEMA_VERSION);
+      }
+      missions = parsed;
     } else {
       // Seed with initial data
       missions = INITIAL_MISSIONS.map((m, i) => ({
@@ -1040,9 +1617,31 @@ function loadData() {
         completed: false,
         created: Date.now() - (INITIAL_MISSIONS.length - i) * 60000
       }));
-      localStorage.setItem('md6_version', '1');
+      localStorage.setItem('md6_version', SCHEMA_VERSION);
     }
-    events = savedEvents ? JSON.parse(savedEvents) : [];
+
+    // Events migration v1 -> v2
+    if (savedEvents) {
+      let parsedEvents = JSON.parse(savedEvents);
+      parsedEvents = parsedEvents.map(ev => {
+        // Old format had {date, time}
+        if ('date' in ev && !('startDate' in ev)) {
+          return {
+            id: ev.id,
+            title: ev.title,
+            startDate: ev.date,
+            startTime: ev.time || '',
+            endDate: ev.date,
+            endTime: ev.time || '',
+            location: ev.location || ''
+          };
+        }
+        return ev;
+      });
+      events = parsedEvents;
+    } else {
+      events = [];
+    }
   } catch (e) {
     console.error('Storage load failed', e);
     missions = INITIAL_MISSIONS.map((m, i) => ({
@@ -1070,6 +1669,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     tab.classList.add('active');
     document.getElementById('view-' + view).classList.add('active');
     if (view === 'calendar') renderCalendar();
+    if (view === 'dashboard') renderDashboard();
   });
 });
 
@@ -1089,6 +1689,49 @@ updateClock();
 setInterval(updateClock, 1000);
 
 // ============ MISSIONS RENDER ============
+const ASSIGNEES = ['João', 'Nuno', 'Paulo', 'Miguel', 'Todos'];
+const PRIORITY_LABELS = { black: 'CODE BLACK', red: 'CRÍTICA', amber: 'MÉDIA', green: 'BAIXA' };
+
+// Calculate days between today and a date (negative = overdue)
+function daysFromToday(dateStr) {
+  if (!dateStr) return null;
+  const target = new Date(dateStr + 'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((target - today) / 86400000);
+}
+
+function formatShortDate(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr + 'T00:00:00');
+  const pad = n => String(n).padStart(2, '0');
+  const months = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  return `${pad(d.getDate())} ${months[d.getMonth()]}`;
+}
+
+function getCountdownInfo(m) {
+  // Priority: if mission has endDate, count down to endDate
+  // Otherwise, show duration between start and now
+  if (m.completed) {
+    return { label: 'DONE', num: '✓', cls: 'ok' };
+  }
+  if (m.endDate) {
+    const days = daysFromToday(m.endDate);
+    if (days < 0) return { label: 'ATRASO', num: `${Math.abs(days)}D`, cls: 'overdue' };
+    if (days === 0) return { label: 'HOJE', num: '0', cls: 'urgent' };
+    if (days <= 3) return { label: 'DIAS', num: String(days), cls: 'urgent' };
+    if (days <= 7) return { label: 'DIAS', num: String(days), cls: 'soon' };
+    return { label: 'DIAS', num: String(days), cls: '' };
+  }
+  if (m.startDate) {
+    const days = daysFromToday(m.startDate);
+    if (days > 0) return { label: 'INICIA', num: `${days}D`, cls: 'soon' };
+    if (days === 0) return { label: 'INICIA', num: 'HOJE', cls: 'urgent' };
+    // Started
+    return { label: 'ACTIVA', num: `${Math.abs(days)}D`, cls: 'ok' };
+  }
+  return { label: 'SEM PRAZO', num: '—', cls: '' };
+}
+
 function renderMissions() {
   const list = document.getElementById('missionsList');
   let filtered = missions;
@@ -1098,24 +1741,25 @@ function renderMissions() {
   else if (currentFilter === 'black') filtered = missions.filter(m => m.priority === 'black' && !m.completed);
   else if (currentFilter === 'red') filtered = missions.filter(m => m.priority === 'red' && !m.completed);
 
-  // Sort: incomplete first, then by priority (black > red > amber > green), then by date
+  // Sort: incomplete first, then by priority, then by endDate, then by startDate
   const priorityOrder = { black: 0, red: 1, amber: 2, green: 3 };
   filtered = [...filtered].sort((a, b) => {
     if (a.completed !== b.completed) return a.completed ? 1 : -1;
     if (a.priority !== b.priority) return priorityOrder[a.priority] - priorityOrder[b.priority];
-    if (a.date && b.date) return a.date.localeCompare(b.date);
-    if (a.date) return -1;
-    if (b.date) return 1;
+    const aKey = a.endDate || a.startDate;
+    const bKey = b.endDate || b.startDate;
+    if (aKey && bKey) return aKey.localeCompare(bKey);
+    if (aKey) return -1;
+    if (bKey) return 1;
     return a.created - b.created;
   });
 
   if (filtered.length === 0) {
     list.innerHTML = '<div class="empty-state">// NENHUMA MISSÃO NESTA CATEGORIA</div>';
   } else {
-    list.innerHTML = filtered.map((m, idx) => renderMission(m, idx)).join('');
+    list.innerHTML = filtered.map(m => renderMission(m)).join('');
   }
 
-  // Update stats
   const active = missions.filter(m => !m.completed).length;
   const high = missions.filter(m => !m.completed && (m.priority === 'black' || m.priority === 'red')).length;
   const done = missions.filter(m => m.completed).length;
@@ -1126,22 +1770,56 @@ function renderMissions() {
   document.getElementById('countMissions').textContent = missions.length;
 }
 
-function renderMission(m, idx) {
-  const priorityLabels = { black: 'CODE BLACK', red: 'CRÍTICA', amber: 'MÉDIA', green: 'BAIXA' };
-  const assigneeClass = m.assignee ? `assignee-${m.assignee.toLowerCase()}` : '';
+function renderMission(m) {
   const idStr = `M-${String(missions.findIndex(x => x.id === m.id) + 1).padStart(3, '0')}`;
+  const assigneeClass = m.assignee ? `assignee-${m.assignee.toLowerCase()}` : '';
+  const countdown = getCountdownInfo(m);
 
-  let dateStr = '—';
-  let dateClass = '';
-  if (m.date) {
-    const d = new Date(m.date + 'T00:00:00');
-    const today = new Date(); today.setHours(0,0,0,0);
-    const pad = n => String(n).padStart(2, '0');
-    const months = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
-    dateStr = `${pad(d.getDate())} ${months[d.getMonth()]}`;
-    dateClass = 'set';
-    if (d < today && !m.completed) { dateClass = 'overdue'; }
-  }
+  const assigneeOptions = ['', ...ASSIGNEES].map(a =>
+    `<option value="${a}" ${m.assignee === a ? 'selected' : ''}>${a || '— UNASSIGNED —'}</option>`
+  ).join('');
+
+  const priorityOptions = Object.entries(PRIORITY_LABELS).map(([k, v]) =>
+    `<option value="${k}" ${m.priority === k ? 'selected' : ''}>${v}</option>`
+  ).join('');
+
+  // Date display with start/end labels
+  const startDays = m.startDate ? daysFromToday(m.startDate) : null;
+  const endDays = m.endDate ? daysFromToday(m.endDate) : null;
+  const startClass = (startDays !== null && startDays < 0 && !m.startDate_past) ? 'date-val' : 'date-val';
+  const endClass = (endDays !== null && endDays < 0 && !m.completed) ? 'date-val overdue' : 'date-val';
+
+  const datesBlock = `
+    <div class="mission-dates" onclick="editMission(${m.id})" title="Click para editar datas">
+      <div class="date-row">
+        <span class="date-label">INI</span>
+        <span class="${m.startDate ? startClass : 'date-val empty'}">${m.startDate ? formatShortDate(m.startDate) : 'n/d'}</span>
+      </div>
+      <div class="date-row">
+        <span class="date-label">FIM</span>
+        <span class="${m.endDate ? endClass : 'date-val empty'}">${m.endDate ? formatShortDate(m.endDate) : 'n/d'}</span>
+      </div>
+    </div>
+  `;
+
+  const countdownBlock = `
+    <div class="mission-countdown ${countdown.cls}" onclick="editMission(${m.id})" title="Click para editar">
+      <span class="num">${countdown.num}</span>
+      <span class="lbl">${countdown.label}</span>
+    </div>
+  `;
+
+  const assigneeSelect = `
+    <select class="mission-assignee ${assigneeClass}" onchange="updateAssignee(${m.id}, this.value)" onclick="event.stopPropagation()">
+      ${assigneeOptions}
+    </select>
+  `;
+
+  const prioritySelect = `
+    <select class="mission-priority priority-badge-${m.priority}" onchange="updatePriority(${m.id}, this.value)" onclick="event.stopPropagation()">
+      ${priorityOptions}
+    </select>
+  `;
 
   const isMobile = window.innerWidth <= 900;
 
@@ -1152,9 +1830,10 @@ function renderMission(m, idx) {
         <div class="mission-title" onclick="editMission(${m.id})">${escapeHtml(m.title)}</div>
         <div class="mission-meta">
           <span class="mission-id">${idStr}</span>
-          ${m.assignee ? `<span class="mission-assignee ${assigneeClass}">${m.assignee}</span>` : ''}
-          <span class="mission-priority priority-badge-${m.priority}">${priorityLabels[m.priority]}</span>
-          ${m.date ? `<span class="mission-date ${dateClass}">${dateStr}</span>` : ''}
+          ${assigneeSelect}
+          ${prioritySelect}
+          ${datesBlock}
+          ${countdownBlock}
         </div>
         <button class="mission-delete" onclick="deleteMission(${m.id})">✕</button>
       </div>
@@ -1166,14 +1845,56 @@ function renderMission(m, idx) {
       <div class="mission-check ${m.completed ? 'checked' : ''}" onclick="toggleMission(${m.id})"></div>
       <div class="mission-id">${idStr}</div>
       <div class="mission-title" onclick="editMission(${m.id})">${escapeHtml(m.title)}</div>
-      ${m.assignee
-        ? `<div class="mission-assignee ${assigneeClass}">${m.assignee}</div>`
-        : `<div class="mission-assignee">—</div>`}
-      <div class="mission-priority priority-badge-${m.priority}">${priorityLabels[m.priority]}</div>
-      <div class="mission-date ${dateClass}">${dateStr}</div>
+      ${assigneeSelect}
+      ${prioritySelect}
+      ${datesBlock}
+      ${countdownBlock}
       <button class="mission-delete" onclick="deleteMission(${m.id})" title="Eliminar">✕</button>
     </div>
   `;
+}
+
+// ============ INLINE UPDATES ============
+function updateAssignee(id, value) {
+  const m = missions.find(x => x.id === id);
+  if (!m) return;
+  m.assignee = value;
+  saveData();
+  applyInlineUpdate(id);
+}
+
+function updatePriority(id, value) {
+  const m = missions.find(x => x.id === id);
+  if (!m) return;
+  m.priority = value;
+  saveData();
+  applyInlineUpdate(id);
+}
+
+// Defer re-render so the <select> change event completes cleanly,
+// then flash the updated row to give clear visual feedback.
+function applyInlineUpdate(id) {
+  // Blur the active element so the native select UI fully closes
+  if (document.activeElement && document.activeElement.blur) {
+    document.activeElement.blur();
+  }
+  // Let the browser process the change event before tearing down the DOM
+  setTimeout(() => {
+    renderMissions();
+    // After re-render, flash the row (it may have moved due to re-sort)
+    requestAnimationFrame(() => {
+      const row = document.querySelector(`.mission[data-id="${id}"]`);
+      if (row) {
+        row.classList.add('flash');
+        setTimeout(() => row.classList.remove('flash'), 500);
+        // Scroll into view if it moved out of the viewport
+        const rect = row.getBoundingClientRect();
+        if (rect.top < 0 || rect.bottom > window.innerHeight) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    });
+  }, 0);
 }
 
 function escapeHtml(str) {
@@ -1229,15 +1950,18 @@ function openMissionModal(id) {
     const m = missions.find(x => x.id === id);
     document.getElementById('fieldTitle').value = m.title;
     document.getElementById('fieldAssignee').value = m.assignee || '';
-    document.getElementById('fieldDate').value = m.date || '';
+    document.getElementById('fieldStartDate').value = m.startDate || '';
+    document.getElementById('fieldEndDate').value = m.endDate || '';
     selectedPriority = m.priority;
   } else {
     document.getElementById('fieldTitle').value = '';
     document.getElementById('fieldAssignee').value = '';
-    document.getElementById('fieldDate').value = '';
+    document.getElementById('fieldStartDate').value = '';
+    document.getElementById('fieldEndDate').value = '';
     selectedPriority = 'red';
   }
   updatePrioritySelection();
+  updateDurationPreview();
   document.getElementById('missionModal').classList.add('open');
   setTimeout(() => document.getElementById('fieldTitle').focus(), 50);
 }
@@ -1255,12 +1979,63 @@ function updatePrioritySelection() {
   });
 }
 
+function updateDurationPreview() {
+  const start = document.getElementById('fieldStartDate').value;
+  const end = document.getElementById('fieldEndDate').value;
+  const preview = document.getElementById('durationPreview');
+
+  if (!start && !end) {
+    preview.className = 'duration-preview';
+    preview.textContent = '// DEFINA DATAS PARA VER DURAÇÃO';
+    return;
+  }
+
+  if (start && end) {
+    const s = new Date(start + 'T00:00:00');
+    const e = new Date(end + 'T00:00:00');
+    const days = Math.round((e - s) / 86400000);
+    if (days < 0) {
+      preview.className = 'duration-preview err';
+      preview.textContent = '⚠ DATA FIM ANTERIOR AO INÍCIO';
+    } else if (days === 0) {
+      preview.className = 'duration-preview set';
+      preview.textContent = '// 1 DIA (MESMO DIA)';
+    } else {
+      preview.className = 'duration-preview set';
+      preview.textContent = `// DURAÇÃO: ${days + 1} DIA${days + 1 === 1 ? '' : 'S'}`;
+    }
+    return;
+  }
+
+  if (end && !start) {
+    const days = daysFromToday(end);
+    preview.className = 'duration-preview set';
+    if (days < 0) preview.textContent = `// PRAZO EXCEDIDO HÁ ${Math.abs(days)} DIA${Math.abs(days) === 1 ? '' : 'S'}`;
+    else if (days === 0) preview.textContent = '// PRAZO: HOJE';
+    else preview.textContent = `// PRAZO: ${days} DIA${days === 1 ? '' : 'S'}`;
+    return;
+  }
+
+  if (start && !end) {
+    const days = daysFromToday(start);
+    preview.className = 'duration-preview set';
+    if (days < 0) preview.textContent = `// INICIADA HÁ ${Math.abs(days)} DIA${Math.abs(days) === 1 ? '' : 'S'}`;
+    else if (days === 0) preview.textContent = '// INICIA HOJE';
+    else preview.textContent = `// INICIA EM ${days} DIA${days === 1 ? '' : 'S'}`;
+    return;
+  }
+}
+
 document.querySelectorAll('#priorityGrid .priority-opt').forEach(opt => {
   opt.addEventListener('click', () => {
     selectedPriority = opt.dataset.priority;
     updatePrioritySelection();
   });
 });
+
+// Live duration preview
+document.getElementById('fieldStartDate').addEventListener('change', updateDurationPreview);
+document.getElementById('fieldEndDate').addEventListener('change', updateDurationPreview);
 
 function saveMission() {
   const title = document.getElementById('fieldTitle').value.trim();
@@ -1270,18 +2045,27 @@ function saveMission() {
     return;
   }
   const assignee = document.getElementById('fieldAssignee').value;
-  const date = document.getElementById('fieldDate').value || null;
+  const startDate = document.getElementById('fieldStartDate').value || null;
+  const endDate = document.getElementById('fieldEndDate').value || null;
+
+  // Validate: end cannot be before start
+  if (startDate && endDate && endDate < startDate) {
+    alert('A data de fim não pode ser anterior à data de início.');
+    return;
+  }
 
   if (editingMissionId) {
     const m = missions.find(x => x.id === editingMissionId);
     m.title = title;
     m.assignee = assignee;
     m.priority = selectedPriority;
-    m.date = date;
+    m.startDate = startDate;
+    m.endDate = endDate;
   } else {
     missions.push({
       id: Date.now(),
-      title, assignee, priority: selectedPriority, date,
+      title, assignee, priority: selectedPriority,
+      startDate, endDate,
       completed: false,
       created: Date.now()
     });
@@ -1331,9 +2115,14 @@ function renderCalendar() {
     const dateObj = new Date(year, month, d);
     const isToday = dateObj.getTime() === today.getTime();
 
-    // Get events for this day
-    const dayEvents = events.filter(e => e.date === dateStr);
-    const dayMissions = missions.filter(m => m.date === dateStr && !m.completed);
+    // Get events for this day: multi-day aware, span-inclusive
+    const dayEvents = events.filter(e => {
+      const s = e.startDate || e.endDate;
+      const f = e.endDate || e.startDate;
+      if (!s || !f) return false;
+      return dateStr >= s && dateStr <= f;
+    });
+    const dayMissions = missions.filter(m => m.endDate === dateStr && !m.completed);
     const total = dayEvents.length + dayMissions.length;
     const hasEvents = total > 0;
 
@@ -1342,7 +2131,26 @@ function renderCalendar() {
     const maxShow = 3;
     for (const e of dayEvents) {
       if (shown >= maxShow) break;
-      eventsHtml += `<div class="cal-event-dot event" onclick="event.stopPropagation(); openEventModal('${e.id}')">${escapeHtml(e.title)}</div>`;
+      // Figure out position in span: start, middle, end, single
+      const isSingle = e.startDate === e.endDate;
+      const isStart = dateStr === e.startDate;
+      const isEnd = dateStr === e.endDate;
+      let spanClass = 'single';
+      if (!isSingle) {
+        if (isStart) spanClass = 'span-start';
+        else if (isEnd) spanClass = 'span-end';
+        else spanClass = 'span-middle';
+      }
+      // Time label: show only on start day
+      let timeLabel = '';
+      if (isStart && e.startTime) {
+        timeLabel = e.startTime;
+        if (isSingle && e.endTime && e.endTime !== e.startTime) {
+          timeLabel += '–' + e.endTime;
+        }
+        timeLabel += ' ';
+      }
+      eventsHtml += `<div class="cal-event-dot event ${spanClass}" onclick="event.stopPropagation(); openEventModal('${e.id}')" title="${escapeHtml(e.title)}">${timeLabel}${escapeHtml(e.title)}</div>`;
       shown++;
     }
     for (const m of dayMissions) {
@@ -1390,25 +2198,34 @@ function openEventModal(id) {
   if (id) {
     const ev = events.find(e => e.id === id);
     document.getElementById('eventTitle').value = ev.title;
-    document.getElementById('eventDate').value = ev.date;
-    document.getElementById('eventTime').value = ev.time || '';
+    document.getElementById('eventStartDate').value = ev.startDate || '';
+    document.getElementById('eventStartTime').value = ev.startTime || '';
+    document.getElementById('eventEndDate').value = ev.endDate || '';
+    document.getElementById('eventEndTime').value = ev.endTime || '';
     document.getElementById('eventLocation').value = ev.location || '';
   } else {
     document.getElementById('eventTitle').value = '';
     const today = new Date();
-    document.getElementById('eventDate').value =
-      `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-    document.getElementById('eventTime').value = '';
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    document.getElementById('eventStartDate').value = todayStr;
+    document.getElementById('eventStartTime').value = '';
+    document.getElementById('eventEndDate').value = todayStr;
+    document.getElementById('eventEndTime').value = '';
     document.getElementById('eventLocation').value = '';
   }
 
+  updateEventDurationPreview();
   document.getElementById('eventModal').classList.add('open');
   setTimeout(() => document.getElementById('eventTitle').focus(), 50);
 }
 
 function openEventModalForDate(dateStr) {
-  // If there's already an event, edit the first one; otherwise create new
-  const existing = events.find(e => e.date === dateStr);
+  // Find any event whose span includes this date
+  const existing = events.find(e => {
+    const s = e.startDate || e.endDate;
+    const f = e.endDate || e.startDate;
+    return s && f && dateStr >= s && dateStr <= f;
+  });
   if (existing) {
     openEventModal(existing.id);
   } else {
@@ -1416,9 +2233,12 @@ function openEventModalForDate(dateStr) {
     document.getElementById('eventModalTitle').textContent = '// NOVO EVENTO';
     document.getElementById('deleteEventBtn').style.display = 'none';
     document.getElementById('eventTitle').value = '';
-    document.getElementById('eventDate').value = dateStr;
-    document.getElementById('eventTime').value = '';
+    document.getElementById('eventStartDate').value = dateStr;
+    document.getElementById('eventStartTime').value = '';
+    document.getElementById('eventEndDate').value = dateStr;
+    document.getElementById('eventEndTime').value = '';
     document.getElementById('eventLocation').value = '';
+    updateEventDurationPreview();
     document.getElementById('eventModal').classList.add('open');
     setTimeout(() => document.getElementById('eventTitle').focus(), 50);
   }
@@ -1429,27 +2249,106 @@ function closeEventModal() {
   editingEventId = null;
 }
 
-function saveEvent() {
-  const title = document.getElementById('eventTitle').value.trim();
-  const date = document.getElementById('eventDate').value;
-  if (!title || !date) {
-    if (!title) document.getElementById('eventTitle').focus();
-    else document.getElementById('eventDate').focus();
+function updateEventDurationPreview() {
+  const sd = document.getElementById('eventStartDate').value;
+  const st = document.getElementById('eventStartTime').value;
+  const ed = document.getElementById('eventEndDate').value;
+  const et = document.getElementById('eventEndTime').value;
+  const preview = document.getElementById('eventDurationPreview');
+
+  if (!sd && !ed) {
+    preview.className = 'duration-preview';
+    preview.textContent = '// DEFINA DATAS PARA VER DURAÇÃO';
     return;
   }
-  const time = document.getElementById('eventTime').value;
+
+  // Validation: end before start
+  if (sd && ed && ed < sd) {
+    preview.className = 'duration-preview err';
+    preview.textContent = '⚠ DATA FIM ANTERIOR AO INÍCIO';
+    return;
+  }
+  if (sd && ed && sd === ed && st && et && et < st) {
+    preview.className = 'duration-preview err';
+    preview.textContent = '⚠ HORA FIM ANTERIOR À HORA INÍCIO';
+    return;
+  }
+
+  if (sd && ed) {
+    const dS = new Date(sd + 'T' + (st || '00:00') + ':00');
+    const dE = new Date(ed + 'T' + (et || (st ? st : '23:59')) + ':00');
+    const diffMs = dE - dS;
+    const diffDays = Math.floor(diffMs / 86400000);
+    const diffHours = Math.floor((diffMs % 86400000) / 3600000);
+    const diffMinutes = Math.floor((diffMs % 3600000) / 60000);
+
+    preview.className = 'duration-preview set';
+    if (sd === ed) {
+      if (st && et) {
+        const hrs = diffHours;
+        const mins = diffMinutes;
+        if (hrs === 0 && mins === 0) preview.textContent = '// DURAÇÃO: INSTANTÂNEO';
+        else if (hrs === 0) preview.textContent = `// DURAÇÃO: ${mins} MIN`;
+        else if (mins === 0) preview.textContent = `// DURAÇÃO: ${hrs}H`;
+        else preview.textContent = `// DURAÇÃO: ${hrs}H ${mins}MIN`;
+      } else {
+        preview.textContent = '// EVENTO NUM DIA ÚNICO';
+      }
+    } else {
+      const totalDays = diffDays + 1;
+      if (diffHours > 0 || diffMinutes > 0) {
+        preview.textContent = `// DURAÇÃO: ${totalDays} DIAS (${diffHours}H ${diffMinutes}MIN extra)`;
+      } else {
+        preview.textContent = `// DURAÇÃO: ${totalDays} DIA${totalDays === 1 ? '' : 'S'}`;
+      }
+    }
+    return;
+  }
+
+  if (sd && !ed) {
+    preview.className = 'duration-preview set';
+    preview.textContent = `// INÍCIO: ${sd}${st ? ' ' + st : ''} · SEM FIM DEFINIDO`;
+  }
+}
+
+function saveEvent() {
+  const title = document.getElementById('eventTitle').value.trim();
+  const startDate = document.getElementById('eventStartDate').value;
+  if (!title || !startDate) {
+    if (!title) document.getElementById('eventTitle').focus();
+    else document.getElementById('eventStartDate').focus();
+    return;
+  }
+  const startTime = document.getElementById('eventStartTime').value;
+  const endDate = document.getElementById('eventEndDate').value || startDate;
+  const endTime = document.getElementById('eventEndTime').value;
   const location = document.getElementById('eventLocation').value.trim();
+
+  // Validate
+  if (endDate < startDate) {
+    alert('A data de fim não pode ser anterior à data de início.');
+    return;
+  }
+  if (endDate === startDate && startTime && endTime && endTime < startTime) {
+    alert('A hora de fim não pode ser anterior à hora de início no mesmo dia.');
+    return;
+  }
 
   if (editingEventId) {
     const ev = events.find(e => e.id === editingEventId);
     ev.title = title;
-    ev.date = date;
-    ev.time = time;
+    ev.startDate = startDate;
+    ev.startTime = startTime;
+    ev.endDate = endDate;
+    ev.endTime = endTime;
     ev.location = location;
   } else {
     events.push({
       id: 'ev_' + Date.now(),
-      title, date, time, location
+      title,
+      startDate, startTime,
+      endDate, endTime,
+      location
     });
   }
   saveData();
@@ -1468,6 +2367,11 @@ function deleteCurrentEvent() {
 
 document.getElementById('eventTitle').addEventListener('keydown', e => {
   if (e.key === 'Enter') saveEvent();
+});
+
+// Live duration preview for events
+['eventStartDate', 'eventStartTime', 'eventEndDate', 'eventEndTime'].forEach(id => {
+  document.getElementById(id).addEventListener('change', updateEventDurationPreview);
 });
 
 // ============ KEYBOARD SHORTCUTS ============
@@ -1498,6 +2402,248 @@ window.addEventListener('resize', () => {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(renderMissions, 150);
 });
+
+// ============ DASHBOARD ============
+function renderDashboard() {
+  // Group missions by assignee
+  const groups = {};
+  const ALL_ASSIGNEES = ['João', 'Nuno', 'Paulo', 'Miguel', 'Todos'];
+  ALL_ASSIGNEES.forEach(a => { groups[a] = []; });
+  const UNASSIGNED_KEY = '— UNASSIGNED —';
+  groups[UNASSIGNED_KEY] = [];
+
+  missions.forEach(m => {
+    const key = m.assignee || UNASSIGNED_KEY;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(m);
+  });
+
+  // Classify each mission's state
+  function classify(m) {
+    if (m.completed) return 'done';
+    if (m.endDate) {
+      const days = daysFromToday(m.endDate);
+      if (days < 0) return 'overdue';
+      if (days <= 3) return 'urgent';
+    }
+    return 'active';
+  }
+
+  // Calculate elapsed days for active missions (from startDate or created)
+  function elapsedDays(m) {
+    if (m.completed) return null;
+    let anchor = null;
+    if (m.startDate) {
+      anchor = new Date(m.startDate + 'T00:00:00');
+    } else if (m.created) {
+      anchor = new Date(m.created);
+      anchor.setHours(0, 0, 0, 0);
+    } else {
+      return null;
+    }
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const days = Math.round((today - anchor) / 86400000);
+    return days >= 0 ? days : 0;
+  }
+
+  // Build summary data per operative
+  const summary = Object.entries(groups)
+    .filter(([name, list]) => list.length > 0)
+    .map(([name, list]) => {
+      const overdue = list.filter(m => classify(m) === 'overdue').length;
+      const urgent = list.filter(m => classify(m) === 'urgent').length;
+      const active = list.filter(m => classify(m) === 'active').length;
+      const done = list.filter(m => classify(m) === 'done').length;
+
+      // Count by priority (only non-completed for the stacked chart)
+      const nonDone = list.filter(m => !m.completed);
+      const pBlack = nonDone.filter(m => m.priority === 'black').length;
+      const pRed = nonDone.filter(m => m.priority === 'red').length;
+      const pAmber = nonDone.filter(m => m.priority === 'amber').length;
+      const pGreen = nonDone.filter(m => m.priority === 'green').length;
+
+      const activeMissions = list.filter(m => !m.completed);
+      const elapsedArr = activeMissions
+        .map(elapsedDays)
+        .filter(d => d !== null);
+      const avgElapsed = elapsedArr.length
+        ? Math.round(elapsedArr.reduce((s, d) => s + d, 0) / elapsedArr.length)
+        : 0;
+      const maxElapsed = elapsedArr.length ? Math.max(...elapsedArr) : 0;
+      return {
+        name,
+        total: list.length,
+        overdue, urgent, active, done,
+        pBlack, pRed, pAmber, pGreen,
+        avgElapsed, maxElapsed,
+        hasElapsed: elapsedArr.length > 0
+      };
+    })
+    .sort((a, b) => b.total - a.total);
+
+  // ============ SUMMARY CARDS ============
+  const totalOps = summary.length;
+  const totalMissions = missions.length;
+  const avgPerOp = totalOps ? (totalMissions / totalOps).toFixed(1) : '0';
+  const topOp = summary[0];
+  const doneCount = missions.filter(m => m.completed).length;
+  const efficiency = totalMissions ? Math.round((doneCount / totalMissions) * 100) : 0;
+
+  document.getElementById('dashTotalOps').textContent = String(totalOps).padStart(2, '0');
+  document.getElementById('dashAvgMissions').textContent = avgPerOp;
+  document.getElementById('dashTopOp').textContent =
+    topOp ? topOp.name.replace('— UNASSIGNED —', 'N/A') : '—';
+  document.getElementById('dashTopOpCount').textContent =
+    topOp ? `${topOp.total} missão${topOp.total === 1 ? '' : 'ões'}` : '— missões';
+  document.getElementById('dashEfficiency').textContent = `${efficiency}%`;
+
+  // ============ BAR CHART (total per assignee) ============
+  const maxTotal = Math.max(...summary.map(s => s.total), 1);
+  const barChart = document.getElementById('dashBarChart');
+  if (summary.length === 0) {
+    barChart.innerHTML = '<div class="empty-chart">// SEM DADOS OPERACIONAIS</div>';
+  } else {
+    barChart.innerHTML = summary.map(s => {
+      const pct = (s.total / maxTotal) * 100;
+      const cls = s.name === UNASSIGNED_KEY ? 'unassigned' : s.name.toLowerCase();
+      const displayName = s.name === UNASSIGNED_KEY ? 'N/A' : s.name;
+      return `
+        <div class="bar-row">
+          <div class="bar-label ${cls}">${displayName}</div>
+          <div class="bar-track">
+            <div class="bar-fill ${cls}" style="width: 0%" data-target="${pct}"></div>
+          </div>
+          <div class="bar-value">${String(s.total).padStart(2, '0')}</div>
+        </div>
+      `;
+    }).join('');
+    // Animate width
+    requestAnimationFrame(() => {
+      barChart.querySelectorAll('.bar-fill').forEach(el => {
+        el.style.width = el.dataset.target + '%';
+      });
+    });
+  }
+
+  // ============ STACKED CHART (priority breakdown) ============
+  const stackedChart = document.getElementById('dashStackedChart');
+  if (summary.length === 0) {
+    stackedChart.innerHTML = '<div class="empty-chart">// SEM DADOS OPERACIONAIS</div>';
+  } else {
+    // Use max active (non-completed) as scale so bars are comparable
+    const maxActive = Math.max(...summary.map(s => s.pBlack + s.pRed + s.pAmber + s.pGreen), 1);
+
+    stackedChart.innerHTML = summary.map(s => {
+      const cls = s.name === UNASSIGNED_KEY ? 'unassigned' : s.name.toLowerCase();
+      const displayName = s.name === UNASSIGNED_KEY ? 'N/A' : s.name;
+      const activeTotal = s.pBlack + s.pRed + s.pAmber + s.pGreen;
+      // Width of the whole bar is relative to the heaviest assignee
+      const rowWidth = (activeTotal / maxActive) * 100;
+
+      // Segments: widths proportional to their share of the row width
+      const segments = [];
+      const pushSeg = (count, cls, label) => {
+        if (count <= 0) return;
+        const widthPct = (count / activeTotal) * rowWidth;
+        segments.push(`
+          <div class="bar-seg prio-${cls}" style="width:0%" data-target="${widthPct}" title="${count} ${label}">
+            ${count >= 1 ? `<span class="seg-count">${count}</span>` : ''}
+          </div>
+        `);
+      };
+      pushSeg(s.pBlack, 'black', 'code black');
+      pushSeg(s.pRed, 'red', 'críticas');
+      pushSeg(s.pAmber, 'amber', 'médias');
+      pushSeg(s.pGreen, 'green', 'baixas');
+
+      // If everything is completed, show a done indicator
+      const allDoneOverlay = activeTotal === 0 && s.done > 0
+        ? `<div class="bar-seg done-only" style="width:${(s.done / maxActive) * 100}%" title="${s.done} concluídas"><span class="seg-count">✓ ${s.done}</span></div>`
+        : '';
+
+      return `
+        <div class="bar-row">
+          <div class="bar-label ${cls}">${displayName}</div>
+          <div class="bar-track">
+            <div class="bar-segments">${segments.join('')}${allDoneOverlay}</div>
+          </div>
+          <div class="bar-value">${String(activeTotal).padStart(2, '0')}${s.done > 0 ? `<span class="bar-value-done">+${s.done}✓</span>` : ''}</div>
+        </div>
+      `;
+    }).join('') + `
+      <div class="chart-legend">
+        <div class="legend-item"><span class="legend-swatch prio-black"></span> Code Black</div>
+        <div class="legend-item"><span class="legend-swatch prio-red"></span> Crítica</div>
+        <div class="legend-item"><span class="legend-swatch prio-amber"></span> Média</div>
+        <div class="legend-item"><span class="legend-swatch prio-green"></span> Baixa</div>
+        <div class="legend-item" style="margin-left:auto;color:var(--text-faint)">só missões activas · concluídas à direita</div>
+      </div>
+    `;
+    // Animate segments
+    requestAnimationFrame(() => {
+      stackedChart.querySelectorAll('.bar-seg').forEach(el => {
+        if (el.dataset.target !== undefined) {
+          el.style.width = el.dataset.target + '%';
+        }
+      });
+    });
+  }
+
+  // ============ DAYS ELAPSED CHART ============
+  const daysChart = document.getElementById('dashDaysChart');
+  const maxDays = Math.max(...summary.map(s => s.maxElapsed), 1);
+
+  if (summary.length === 0) {
+    daysChart.innerHTML = '<div class="empty-chart">// SEM DADOS OPERACIONAIS</div>';
+  } else {
+    daysChart.innerHTML = summary.map(s => {
+      const cls = s.name === UNASSIGNED_KEY ? 'unassigned' : s.name.toLowerCase();
+      const displayName = s.name === UNASSIGNED_KEY ? 'N/A' : s.name;
+
+      if (!s.hasElapsed) {
+        return `
+          <div class="days-grid">
+            <div class="bar-label ${cls}">${displayName}</div>
+            <div class="days-bars">
+              <div class="empty-chart" style="padding: 12px; font-size: 10px;">// SEM MISSÕES ACTIVAS COM TEMPO DECORRIDO</div>
+            </div>
+          </div>
+        `;
+      }
+
+      const avgPct = (s.avgElapsed / maxDays) * 100;
+      const maxPct = (s.maxElapsed / maxDays) * 100;
+      return `
+        <div class="days-grid">
+          <div class="bar-label ${cls}">${displayName}</div>
+          <div class="days-bars">
+            <div class="days-row">
+              <div class="days-row-lbl">MÉDIA</div>
+              <div class="days-track"><div class="days-fill avg" style="width:0%" data-target="${avgPct}"></div></div>
+              <div class="days-val">${s.avgElapsed}D</div>
+            </div>
+            <div class="days-row">
+              <div class="days-row-lbl">MÁXIMO</div>
+              <div class="days-track"><div class="days-fill max" style="width:0%" data-target="${maxPct}"></div></div>
+              <div class="days-val">${s.maxElapsed}D</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('') + `
+      <div class="chart-legend">
+        <div class="legend-item"><span class="legend-swatch" style="background: var(--amber)"></span> Média de dias decorridos</div>
+        <div class="legend-item"><span class="legend-swatch" style="background: var(--red)"></span> Máximo de dias decorridos</div>
+        <div class="legend-item" style="margin-left:auto; color:var(--text-faint)">dias desde início / criação</div>
+      </div>
+    `;
+    requestAnimationFrame(() => {
+      daysChart.querySelectorAll('.days-fill').forEach(el => {
+        el.style.width = el.dataset.target + '%';
+      });
+    });
+  }
+}
 
 // ============ INIT ============
 loadData();
